@@ -53,7 +53,7 @@ class GameScene: SKScene, ObservableObject {
     
     func setupPlayer() {
         // Create and set up the player node
-        let playerTexture = SKTexture(imageNamed: "Spaceship#1")
+        let playerTexture = SKTexture(imageNamed: "Spaceship#3")
         let player = SKSpriteNode(texture: playerTexture)
         player.name = "player"
         
