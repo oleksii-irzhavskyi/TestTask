@@ -134,43 +134,77 @@ class GameScene: SKScene, ObservableObject {
     }
     
     func addAsteroid() {
-        // Add asteroid to the scene
+        // Ensure the game is not over before adding a new asteroid
         guard !isGameOver else { return }
         
+        // Create a new asteroid
+        let asteroid = createAsteroid()
+        // Add the asteroid to the scene
+        addChild(asteroid)
+        
+        // Set up physics properties for collision detection
+        setupPhysics(for: asteroid)
+        
+        // Define actions for asteroid movement and removal
+        let moveAction = moveAsteroid(asteroid)
+        let removeAction = removeAsteroid()
+        
+        // Run the sequence of actions, and execute the completion block
+        asteroid.run(SKAction.sequence([moveAction, removeAction])) {
+            // Handle completion of asteroid animation
+            self.handleAsteroidCompletion()
+        }
+    }
+    
+    func createAsteroid() -> SKSpriteNode {
+        // Load texture for the asteroid
         let asteroidTexture = SKTexture(imageNamed: "asteroid")
+        // Create a sprite node with the asteroid texture
         let asteroid = SKSpriteNode(texture: asteroidTexture)
+        // Set a unique name for identification
         asteroid.name = "asteroid"
         
+        // Define size and position for the asteroid
         let asteroidSize = CGSize(width: 50, height: 50)
         asteroid.size = asteroidSize
-        
         let randomX = CGFloat.random(in: 0...(size.width - asteroidSize.width))
         asteroid.position = CGPoint(x: randomX + asteroidSize.width / 2, y: size.height)
         
-        addChild(asteroid)
-        
+        return asteroid
+    }
+    
+    func setupPhysics(for asteroid: SKSpriteNode) {
         // Set up physics body for collision detection
         asteroid.physicsBody = SKPhysicsBody(rectangleOf: asteroid.size)
         asteroid.physicsBody?.categoryBitMask = 2
         asteroid.physicsBody?.collisionBitMask = 0
         asteroid.physicsBody?.contactTestBitMask = 1
-        
-        let moveAction = SKAction.moveBy(x: 0, y: -size.height, duration: TimeInterval(obstacleSpeed))
-        let removeAction = SKAction.removeFromParent()
-        
-        // Run actions for asteroid movement and removal, update score
-        asteroid.run(SKAction.sequence([moveAction, removeAction])) {
-            if !self.isGameOver {
-                self.score += 1
-                self.updateScoreLabel()
-                
-                // Increase obstacle speed every 10 points, but not below 2.0
-                if self.score % 10 == 0 || self.obstacleSpeed > 2.0 {
-                    self.obstacleSpeed -= 0.1
-                }
+    }
+    
+    func moveAsteroid(_ asteroid: SKSpriteNode) -> SKAction {
+        // Define the movement action for the asteroid
+        return SKAction.moveBy(x: 0, y: -size.height, duration: TimeInterval(obstacleSpeed))
+    }
+    
+    func removeAsteroid() -> SKAction {
+        // Define the action to remove the asteroid from the scene
+        return SKAction.removeFromParent()
+    }
+    
+    func handleAsteroidCompletion() {
+        // Check if the game is still ongoing
+        if !isGameOver {
+            // Increment the score and update the score label
+            score += 1
+            updateScoreLabel()
+            
+            // Increase obstacle speed every 10 points, but not below 2.0
+            if score % 10 == 0 && obstacleSpeed > 2.0 {
+                obstacleSpeed -= 0.1
             }
         }
     }
+    
     
     func gameOver() {
         // Handle game over state
